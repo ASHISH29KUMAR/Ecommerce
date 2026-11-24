@@ -1,0 +1,245 @@
+from pathlib import Path
+from decouple import config, Csv
+from dj_database_url import parse as db_url
+
+
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
+BASE_DIR = Path(__file__).resolve().parent.parent
+SECRET_KEY = config("DJANGO_SECRET")
+# By-default decouple return variables in string format
+DEBUG = config("DEBUG", default=False, cast=bool)
+ALLOWED_HOSTS = config("ALLOWED_HOSTS", default=[], cast=Csv())
+
+
+# Application definition
+INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'cloudinary_storage',
+    'cloudinary',
+    'django.contrib.humanize',
+    'debug_toolbar',
+
+    'anymail',
+    
+    'allauth',
+    'allauth.usersessions',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
+
+    'users',
+    'core',
+    'product',
+    'cart',
+    'rider',
+    'order',
+]
+
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    "whitenoise.middleware.WhiteNoiseMiddleware",
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "allauth.account.middleware.AccountMiddleware",
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
+]
+
+ROOT_URLCONF = 'ecomdjango.urls'
+
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': ['templates'],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+                'cart.context_processors.cart',
+            ],
+        },
+    },
+]
+
+WSGI_APPLICATION = 'ecomdjango.wsgi.application'
+
+DATABASES = {
+    "default": config('DATABASE_URL', cast=db_url)
+}
+
+# Password validation
+# https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
+
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'OPTIONS': {
+            'min_length': 8,
+        },
+    },
+]
+
+AUTHENTICATION_BACKENDS = [
+    # Needed to login by username in Django admin, regardless of `allauth`
+    'django.contrib.auth.backends.ModelBackend',
+
+    # `allauth` specific authentication methods, such as login by email
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
+
+# Internationalization
+# https://docs.djangoproject.com/en/6.0/topics/i18n/
+
+LANGUAGE_CODE = 'en-us'
+
+TIME_ZONE = 'UTC'
+
+USE_I18N = True
+
+USE_TZ = True
+
+
+# ===============
+# Staticfiles & mediafiles Config
+# ==============
+STATIC_URL = '/static/'
+# str paths: Vercel json.dumps settings at build time; Path is not serializable
+STATIC_ROOT = str(BASE_DIR / 'staticfiles')
+# Source files live in assets/; collectstatic copies them to staticfiles/
+STATICFILES_DIRS = [
+    ("css", str(BASE_DIR / "assets" / "css")),
+    ("js", str(BASE_DIR / "assets" / "js")),
+    ("images", str(BASE_DIR / "assets" / "images")),
+]
+MEDIA_URL = '/dcom/'
+MEDIA_ROOT = str(BASE_DIR / 'mediafiles')
+
+# Local: filesystem media. Production: Cloudinary (set CLOUDINARY_* env vars)
+if DEBUG:
+    STORAGES = {
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        },
+    }
+else:
+    STORAGES = {
+        "default": {
+            "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        },
+    }
+    CLOUDINARY_STORAGE = {
+        "CLOUD_NAME": config("CLOUDINARY_CLOUD_NAME"),
+        "API_KEY": config("CLOUDINARY_API_KEY"),
+        "API_SECRET": config("CLOUDINARY_API_SECRET"),
+    }
+
+
+# anymail config
+if DEBUG:
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+else:
+    EMAIL_BACKEND = config("EMAIL_BACKEND", default="anymail.backends.resend.EmailBackend")
+
+EMAIL_PROVIDER_NAME = config("EMAIL_PROVIDER_NAME").upper()
+ANYMAIL = {
+        f"{EMAIL_PROVIDER_NAME}_API_KEY": config("EMAIL_API_KEY"),
+    }
+DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL")
+
+# allauth config
+ACCOUNT_SIGNUP_FIELDS = [ "email*", "password1*", "password2*" ]
+ACCOUNT_SIGNUP_FORM_CLASS = "users.forms.UserSignUpForm"
+ACCOUNT_SESSION_REMEMBER = True
+# list not set — set is not JSON-serializable (Vercel build discovery)
+ACCOUNT_LOGIN_METHODS = ["email"]
+ACCOUNT_LOGIN_BY_CODE_ENABLED = True
+ACCOUNT_LOGIN_BY_CODE_SUPPORTS_RESEND  = True
+ACCOUNT_LOGOUT_ON_GET = True
+# Plain strings (not reverse_lazy) so Vercel can JSON-serialize settings at build time
+LOGIN_REDIRECT_URL = "/my-dashboard/profile/"
+ACCOUNT_SIGNUP_REDIRECT_URL = "/"
+
+ACCOUNT_EMAIL_VERIFICATION = "mandatory"
+ACCOUNT_EMAIL_VERIFICATION_BY_CODE_ENABLED = True
+ACCOUNT_EMAIL_VERIFICATION_SUPPORTS_RESEND = True
+ACCOUNT_CHANGE_EMAIL = True
+ACCOUNT_EMAIL_NOTIFICATIONS = True
+ACCOUNT_UNIQUE_EMAIL = True
+
+ACCOUNT_PASSWORD_RESET_BY_CODE_ENABLED = True
+
+# allauth social account providers config
+SOCIALACCOUNT_LOGIN_ON_GET = True
+SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True
+SOCIALACCOUNT_PROVIDERS = {
+    "google": {
+        "EMAIL_AUTHENTICATION": True,
+        "APPS": [
+            {
+                "client_id": config("GOOGLE_CLIENT_ID"),
+                "secret": config("GOOGLE_CLIENT_SECRET"),
+                "key": "",
+                "settings": {
+                    "scope": [
+                        "profile",
+                        "email",
+                    ],
+                    "auth_params": {
+                        "access_type": "online",
+                    },
+                },
+            },
+        ],
+    }
+}
+
+
+INTERNAL_IPS = [
+    "127.0.0.1",
+]
+
+FIXTURE_DIRS = [
+    str(BASE_DIR / "fixtures"),
+]
+
+# Keep BASE_DIR as str for Vercel settings JSON discovery (must be after Path joins above)
+BASE_DIR = str(BASE_DIR)
+
+# Local: in-process memory. Production: Redis (REDIS_CACHE_LOCATION)
+if DEBUG:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "ecomdjango",
+            "KEY_PREFIX": "ecomdjango",
+            "VERSION": config("REDIS_CACHE_VERSION", default=1, cast=int),
+        }
+    }
+else:
+    CACHES = {
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": config("REDIS_CACHE_LOCATION"),
+            "KEY_PREFIX": "ecomdjango",
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            },
+            "VERSION": config("REDIS_CACHE_VERSION", default=1, cast=int),
+        }
+    }
