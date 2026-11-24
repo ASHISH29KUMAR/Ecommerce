@@ -1,0 +1,12 @@
+{% load i18n %}
+{% if categories %}
+<div class="grid grid-cols-2 lg:grid-cols-3 gap-4" style="grid-template-rows: auto auto;">
+  {% for category in categories %}
+    {% include 'includes/category_card.html' with category=category is_large=forloop.first %}
+  {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-16 opacity-50">
+  <p class="text-xl font-medium">{% trans "No categories found." %}</p>
+</div>
+{% endif %}

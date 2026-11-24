@@ -1,0 +1,54 @@
+from django import forms
+from core.mixins import FancyFormFieldMixin
+from .models import RiderApplication, RiderAddress, RiderProfile
+
+
+class RiderApplicationForm(FancyFormFieldMixin, forms.ModelForm):
+    class Meta:
+        model = RiderApplication
+        fields = [
+            "full_name",
+            "phone_number",
+            "nid_number",
+            "vehicle_type",
+            "license_number",
+            "image",
+            "country_id",
+            "city_id",
+            "area_id",
+            "zone_id",
+        ]
+        widgets = {
+            "country_id": forms.HiddenInput(),
+            "city_id":    forms.HiddenInput(),
+            "area_id":    forms.HiddenInput(),
+            "zone_id":    forms.HiddenInput(),
+        }
+        
+
+# =====================
+# Manager related forms
+# ======================
+class RiderApplicationStatusForm(forms.ModelForm):
+    """Used by the manager to accept or reject an application."""
+
+    class Meta:
+        model = RiderApplication
+        fields = ["status"]
+        widgets = {"status": forms.HiddenInput()}
+        
+# ====================
+# Rider Address form
+# ====================
+class RiderAddressForm(FancyFormFieldMixin, forms.ModelForm):
+    class Meta:
+        model = RiderAddress
+        fields = ["country_id", "city_id", "area_id", "zone_id"]
+        
+# =================
+# RiderProfile From
+# ================
+class RiderProfileForm(FancyFormFieldMixin, forms.ModelForm):
+    class Meta:
+        model = RiderProfile
+        fields = ["full_name", "phone_number", "vehicle_type", "profile_image"]

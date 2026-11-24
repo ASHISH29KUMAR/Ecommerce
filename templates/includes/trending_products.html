@@ -1,0 +1,53 @@
+{% load i18n %}
+
+<!-- Product Grid: Trending / New Arrivals -->
+<section class="py-24 bg-base-200">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+    <!-- Section header with tabs -->
+    <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-12">
+      <div>
+        <span class="flex items-center gap-3 mb-3">
+          <span class="inline-block w-6 h-0.5 bg-primary"></span>
+          <span class="text-xs font-medium tracking-widest uppercase text-base-content/70">
+            {% trans "Handpicked" %}
+          </span>
+        </span>
+        <h2 class="text-4xl lg:text-5xl font-black text-base-content">
+          {% trans "Trending Now" %}
+        </h2>
+      </div>
+
+      <!-- Filter tabs -->
+      <div class="tabs tabs-boxed">
+        <a class="tab tab-active" onclick="filterTab(this, 'all')">{% trans "All" %}</a>
+        <a class="tab" onclick="filterTab(this, 'new')">{% trans "New" %}</a>
+        <a class="tab" onclick="filterTab(this, 'sale')">{% trans "On Sale" %}</a>
+        <a class="tab" onclick="filterTab(this, 'top')">{% trans "Top Rated" %}</a>
+      </div>
+    </div>
+
+    <!-- Product grid include -->
+    {% include 'includes/product_grid.html' with products=products %}
+
+    <!-- View all CTA -->
+    <div class="mt-14 text-center">
+      <a href="{% url "shop_page" %}" class="btn btn-primary gap-2">
+        {% trans "View All Products" %}
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M5 12h14M12 5l7 7-7 7" />
+        </svg>
+      </a>
+    </div>
+  </div>
+</section>
+
+<script>
+  function filterTab(el, filter) {
+    document.querySelectorAll('.tabs .tab').forEach((btn) => {
+      btn.classList.remove('tab-active');
+    });
+    el.classList.add('tab-active');
+    // TODO: add filtering logic for product grid
+  }
+</script>

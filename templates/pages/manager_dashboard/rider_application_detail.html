@@ -1,0 +1,170 @@
+{% extends "layouts/manager_dashboard.html" %}
+
+{% block title %}Application — {{ application.full_name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto py-8 px-4">
+
+  {# ── Back ── #}
+  <a href="{% url 'manager_rider_application_list' %}"
+     class="inline-flex items-center gap-1 text-sm text-base-content/50 hover:text-base-content mb-6 transition-colors">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+    </svg>
+    Back to Applications
+  </a>
+
+  {# ── Already actioned notice ── #}
+  {% if application.status != 'pending' %}
+    <div role="alert" class="alert alert-info mb-6 shadow-sm">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none"
+           viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20A10 10 0 0012 2z"/>
+      </svg>
+      <span>
+        This application has already been
+        <span class="font-semibold">{{ application.get_status_display|lower }}</span>.
+        Accept / Reject actions are disabled.
+      </span>
+    </div>
+  {% endif %}
+
+  {# ── Detail Card ── #}
+  <div class="card bg-base-100 border border-base-200 shadow-sm mb-6">
+    <div class="card-body gap-5">
+
+      <div class="flex items-start justify-between flex-wrap gap-3">
+        <div>
+          <h1 class="text-xl font-bold">{{ application.full_name }}</h1>
+          <p class="text-sm text-base-content/50 mt-0.5">
+            {{ application.user.username }} · {{ application.user.email }}
+          </p>
+        </div>
+        <span class="badge badge-lg
+          {% if application.status == 'approved' %}badge-success
+          {% elif application.status == 'rejected' %}badge-error
+          {% else %}badge-warning{% endif %}">
+          {{ application.get_status_display }}
+        </span>
+      </div>
+
+      <div class="divider my-0"></div>
+
+      <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+
+        <div>
+          <dt class="text-xs font-medium text-base-content/40 uppercase tracking-wide mb-1">Phone Number</dt>
+          <dd class="font-medium">{{ application.phone_number }}</dd>
+        </div>
+
+        <div>
+          <dt class="text-xs font-medium text-base-content/40 uppercase tracking-wide mb-1">NID Number</dt>
+          <dd class="font-medium">{{ application.nid_number }}</dd>
+        </div>
+
+        <div>
+          <dt class="text-xs font-medium text-base-content/40 uppercase tracking-wide mb-1">Vehicle Type</dt>
+          <dd class="font-medium">{{ application.get_vehicle_type_display }}</dd>
+        </div>
+
+        <div>
+          <dt class="text-xs font-medium text-base-content/40 uppercase tracking-wide mb-1">License Number</dt>
+          <dd class="font-medium">{{ application.license_number }}</dd>
+        </div>
+
+        <div>
+          <dt class="text-xs font-medium text-base-content/40 uppercase tracking-wide mb-1">Applied On</dt>
+          <dd class="font-medium">{{ application.applied_at|date:"N j, Y, g:i a" }}</dd>
+        </div>
+
+        <div>
+          <dt class="text-xs font-medium text-base-content/40 uppercase tracking-wide mb-1">Service Area</dt>
+          <dd class="font-medium">
+            {% if address %}
+              {% if application.zone_id %}
+                {{ address.name_en }}
+                <span class="text-base-content/40 font-normal text-xs">
+                  · {{ address.area.name_en }}, {{ address.area.city.name_en }}, {{ address.area.city.country.name_en }}
+                </span>
+              {% elif application.area_id %}
+                {{ address.name_en }}
+                <span class="text-base-content/40 font-normal text-xs">
+                  · {{ address.city.name_en }}, {{ address.city.country.name_en }}
+                </span>
+              {% elif application.city_id %}
+                {{ address.name_en }}
+                <span class="text-base-content/40 font-normal text-xs">
+                  · {{ address.country.name_en }}
+                </span>
+              {% else %}
+                {{ address.name_en }}
+              {% endif %}
+            {% else %}
+              <span class="italic text-base-content/30">Not specified</span>
+            {% endif %}
+          </dd>
+        </div>
+
+        {% if application.image %}
+          <div class="sm:col-span-2">
+            <dt class="text-xs font-medium text-base-content/40 uppercase tracking-wide mb-1">Document Photo</dt>
+            <dd>
+              <img src="{{ application.image.url }}"
+                  alt="Application document"
+                  class="rounded-lg max-h-48 border border-base-200 object-cover">
+            </dd>
+          </div>
+        {% endif %}
+
+      </dl>
+
+    </div>
+  </div>
+
+  {# ── Action Buttons ── #}
+  <div class="flex items-center justify-between gap-3 flex-wrap">
+
+    {# Accept / Reject — POST directly from buttons #}
+    <div class="flex gap-2">
+
+      {% if can_change_status and application.status == 'pending' %}
+        {# Accept #}
+        <form method="post" action="{% url 'manager_rider_application_update' application.pk %}">
+          {% csrf_token %}
+          <input type="hidden" name="status" value="approved">
+          <button type="submit" class="btn btn-success btn-sm">
+            ✓ Accept
+          </button>
+        </form>
+        {# Reject #}
+        <form method="post" action="{% url 'manager_rider_application_update' application.pk %}">
+          {% csrf_token %}
+          <input type="hidden" name="status" value="rejected">
+          <button type="submit" class="btn btn-error btn-outline btn-sm">
+            ✕ Reject
+          </button>
+        </form>
+      {% else %}
+        <button class="btn btn-success btn-sm" disabled>✓ Accept</button>
+        <button class="btn btn-error btn-outline btn-sm" disabled>✕ Reject</button>
+      {% endif %}
+
+    </div>
+
+    {# Remove #}
+    {% if can_delete %}
+      <a href="{% url 'manager_rider_application_delete' application.pk %}"
+         class="btn btn-ghost btn-sm text-error hover:bg-error/10">
+        🗑 Remove Application
+      </a>
+    {% else %}
+      <button class="btn btn-ghost btn-sm text-error opacity-40" disabled>
+        🗑 Remove Application
+      </button>
+    {% endif %}
+
+  </div>
+
+</div>
+{% endblock %}

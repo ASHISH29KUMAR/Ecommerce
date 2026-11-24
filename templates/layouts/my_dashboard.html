@@ -1,0 +1,54 @@
+{% extends "layouts/manage.html" %}
+{% load allauth %}
+
+
+{% block sidebar_header %}
+<div class="px-4 pt-5 pb-2">
+  <span class="text-xs font-semibold uppercase tracking-widest opacity-40">
+    My Dashboard
+  </span>
+</div>
+{% endblock %}
+
+
+{# Prepend "Profile" as the first nav item, then render the parent links #}
+{% block aside_links %}
+<li>
+  <a href="{% url 'my_profile' %}" class="active font-medium">
+    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 16 16">
+      <circle cx="8" cy="5" r="3"/>
+      <path d="M2 14c0-3.3 2.7-5 6-5s6 1.7 6 5"/>
+    </svg>
+    My Profile
+  </a>
+</li>
+<li>
+  <a href="{% url 'my_cart' %}" class="active font-medium">
+    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 16 16">
+      <circle cx="8" cy="5" r="3"/>
+      <path d="M2 14c0-3.3 2.7-5 6-5s6 1.7 6 5"/>
+    </svg>
+    My Cart
+  </a>
+</li>
+<li>
+  <a href="{% url 'customer_order_list' %}" class="active font-medium">
+    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 16 16">
+      <circle cx="8" cy="5" r="3"/>
+      <path d="M2 14c0-3.3 2.7-5 6-5s6 1.7 6 5"/>
+    </svg>
+    My Orders
+  </a>
+</li>
+{% if perms.rider.add_riderapplication %}
+<li>
+  <a href="{% url 'rider_application_list' %}" class="active font-medium">
+    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 16 16">
+      <circle cx="8" cy="5" r="3"/>
+      <path d="M2 14c0-3.3 2.7-5 6-5s6 1.7 6 5"/>
+    </svg>
+    Rider Application
+  </a>
+</li>
+{% endif %}
+{% endblock aside_links %}
